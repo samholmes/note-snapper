@@ -17,6 +17,10 @@ function App() {
   const [isUploading, setIsUploading] = useState(false);
   const [snaps, setSnaps] = useState(getInitialSnaps);
 
+  const handleClearStorage = () => {
+    setSnaps([])
+  }
+
   /**
    * @param {string} img
    */
@@ -49,7 +53,7 @@ function App() {
 
   return (
     <>
-      <Navbar />
+      <Navbar onClearStorage={handleClearStorage} />
 
       <Routes>
         <Route
