@@ -14,7 +14,8 @@ import { getStructuredDataFromImage } from "./api";
 function App() {
   const navigate = useNavigate();
 
-  const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [snaps, setSnaps] = useState(getInitialSnaps);
 
   const handleClearStorage = () => {
@@ -25,26 +26,41 @@ function App() {
    * @param {string} img
    */
   async function onNewImage(img) {
-    if (isUploading) return;
-    navigate("/");
-    setIsUploading(true);
+    try {
+      if (isLoading) return;
+      navigate("/");
+      setIsLoading(true);
 
-    console.log(img);
+      /**
+       * Part 1:
+       * Customize this prompt to get the data you want from the image.
+       * Specify how you'd like it formatted as well.
+       */
+      let prompt
+      if (snaps.length > 0) {
+        const prev = snaps[snaps.length - 1]
+        prompt = `Scan the text on this page to continue the story and summarize the general key points of the plot of the story in few short sentences. Previous page's summary:\n\n ${prev}`;
+      }
+      else {
+        prompt = `Scan the text on this page, and summarize the general key points of the plot of the story in few short sentences.`;
+      }
 
-    /**
-     * Part 1:
-     * Customize this prompt to get the data you want from the image.
-     * Specify how you'd like it formatted as well.
-     */
-    const prompt = `What is this?`;
-    const result = await getStructuredDataFromImage(img, prompt);
+      const result = await getStructuredDataFromImage(img, prompt)
 
-    /**
-     * Part 2:
-     * Format the result to your liking before it's added to the list of snaps.
-     */
-    setSnaps((r) => [result, ...r]);
-    setIsUploading(false);
+      /**
+       * Part 2:
+       * Format the result to your liking before it's added to the list of snaps.
+       */
+      setError('')
+      setSnaps((r) => [result, ...r]);
+    } catch (error) {
+      setError(`${String(error)}`)
+      console.error(error)
+    }
+    finally {
+      setIsLoading(false);
+    }
+
   }
 
   useEffect(() => {
@@ -60,7 +76,10 @@ function App() {
           path="/"
           element={
             <div>
-              {isUploading && (
+              {error !== '' ?
+                <pre>{error}</pre>
+              : null}
+              {isLoading && (
                 <div className="p-2 w-full text-center mb-2">
                   Scanning Snap...
                 </div>
